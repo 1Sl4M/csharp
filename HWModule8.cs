@@ -11,18 +11,15 @@ namespace HWModule8
         static void Main(string[] args)
         {
             // 1.
-            //SquaredArray squaredArray = new SquaredArray(5);
+            SquaredArray squared_arr = new SquaredArray(5);
 
-            //squaredArray[0] = 2;
-            //squaredArray[1] = 3;
-            //squaredArray[2] = 4;
-            //squaredArray[3] = 5;
-            //squaredArray[4] = 6;
+            squared_arr[0] = 3;
+            squared_arr[1] = 4;
+            squared_arr[2] = 5;
+            squared_arr[3] = 6;
+            squared_arr[4] = 7;
 
-            //for (int i = 0; i < 5; i++)
-            //{
-            //    Console.WriteLine($"Значение элемента с индексом {i} = {squaredArray[i]}");
-            //}
+            Console.WriteLine(squared_arr[4]);
 
             // 2.
             Console.Write("Введите площадь помещения (в м2): ");
@@ -38,8 +35,8 @@ namespace HWModule8
             string hasDiscount = Console.ReadLine().ToLower();
 
             double heatingRate = 5.0;
-            double waterRate = 2.0;  
-            double gasRate = 3.0;    
+            double waterRate = 2.0;
+            double gasRate = 3.0;
             double repairRate = 10.0;
 
             if (season == "осень" || season == "зима")
@@ -78,35 +75,33 @@ namespace HWModule8
 }
 class SquaredArray
 {
-    private int[] array;
-
+    private int[] arr;
     public SquaredArray(int size)
     {
-        array = new int[size];
+        arr = new int[size];
     }
-
     public int this[int index]
     {
         get
         {
-            if (index >= 0 && index < array.Length)
+            if (index >= 0 && index < arr.Length)
             {
-                return array[index];
+                return arr[index];
             }
             else
             {
-                throw new IndexOutOfRangeException();
+                throw new IndexOutOfRangeException("Индекс вне границ массива.");
             }
         }
         set
         {
-            if (index >= 0 && index < array.Length)
+            if (index >= 0 && index < arr.Length)
             {
-                array[index] = value * value;
+                arr[index] = value * value;
             }
             else
             {
-                throw new IndexOutOfRangeException();
+                throw new IndexOutOfRangeException("Индекс вне границ массива.");
             }
         }
     }
