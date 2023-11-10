@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,63 +12,57 @@ namespace HWModule8
         static void Main(string[] args)
         {
             // 1.
-            SquaredArray squared_arr = new SquaredArray(5);
+            SquaredArray squaredArray = new SquaredArray();
 
-            squared_arr[0] = 3;
-            squared_arr[1] = 4;
-            squared_arr[2] = 5;
-            squared_arr[3] = 6;
-            squared_arr[4] = 7;
+            squaredArray[0] = 3;
+            squaredArray[1] = 4;
+            squaredArray[2] = 5;
+            squaredArray[3] = 6;
+            squaredArray[4] = 7;
 
-            Console.WriteLine(squared_arr[4]);
+            Console.WriteLine(squaredArray[4]);
 
             // 2.
-            Console.Write("Введите площадь помещения (в м2): ");
-            double area = double.Parse(Console.ReadLine());
-
-            Console.Write("Введите количество проживающих: ");
-            int residents = int.Parse(Console.ReadLine());
-
-            Console.Write("Введите сезон (осень/зима): ");
-            string season = Console.ReadLine().ToLower();
-
-            Console.Write("Есть ли льготы (да/нет): ");
-            string hasDiscount = Console.ReadLine().ToLower();
+            CultureInfo cultureInfo = new CultureInfo("en-US");
+            System.Threading.Thread.CurrentThread.CurrentCulture = cultureInfo;
 
             double heatingRate = 5.0;
             double waterRate = 2.0;
             double gasRate = 3.0;
-            double repairRate = 10.0;
+            double repairRate = 4.0;
+            bool isWinterSeason = true;
 
-            if (season == "осень" || season == "зима")
+            PaymentCalculator calculator = new PaymentCalculator(heatingRate, waterRate, gasRate, repairRate, isWinterSeason);
+
+            double squareMeters = 100.0;
+            int numResidents = 3;
+
+            Console.WriteLine("Таблица коммунальных платежей:");
+            Console.WriteLine("{0,-15} {1,-10} {2,-15} {3,-10}", "Вид платежа", "Начислено", "Льгота", "Итого");
+            Console.WriteLine(new string('-', 50));
+
+            string[] paymentTypes = { "heating", "water", "gas", "repair" };
+            foreach (string paymentType in paymentTypes)
             {
-                heatingRate *= 1.2;
+                double rate = calculator[paymentType];
+                double totalPayment = rate * (paymentType == "water" ? numResidents : squareMeters);
+                double discount = 0.0;
+
+                Console.WriteLine("{0,-15} {1,-10:C} {2,-15:C} {3,-10:C}",
+                    paymentType, totalPayment, discount, totalPayment - discount);
             }
 
-            double heatingPayment = area * heatingRate;
-            double waterPayment = residents * waterRate;
-            double gasPayment = residents * gasRate;
-            double repairPayment = area * repairRate;
-
-            double discount = 0.0;
-
-            if (hasDiscount == "да")
+            double totalAmount = 0.0;
+            foreach (string paymentType in paymentTypes)
             {
-                discount = heatingPayment * 0.3;
+                double rate = calculator[paymentType];
+                double totalPayment = rate * (paymentType == "water" ? numResidents : squareMeters);
+                double discount = 0.0;
+                totalAmount += (totalPayment - discount);
             }
 
-            double totalHeating = heatingPayment - discount;
-            double totalWater = waterPayment;
-            double totalGas = gasPayment;
-            double totalRepair = repairPayment;
-            double totalPayment = totalHeating + totalWater + totalGas + totalRepair;
+            Console.WriteLine("\nИтоговая сумма: {0:C}", totalAmount);
 
-            Console.WriteLine("Вид платежа\t\tНачислено\tЛьготная скидка\tИтого");
-            Console.WriteLine($"Отопление\t\t{heatingPayment:C}\t\t{discount:C}\t\t{totalHeating:C}");
-            Console.WriteLine($"Вода\t\t\t{waterPayment:C}\t\t\t-\t\t{totalWater:C}");
-            Console.WriteLine($"Газ\t\t\t{gasPayment:C}\t\t\t-\t\t{totalGas:C}");
-            Console.WriteLine($"Ремонт\t\t\t{repairPayment:C}\t\t\t-\t\t{totalRepair:C}");
-            Console.WriteLine($"Итого\t\t\t\t\t\t\t{totalPayment:C}");
 
             Console.ReadLine();
         }
@@ -75,35 +70,64 @@ namespace HWModule8
 }
 class SquaredArray
 {
-    private int[] arr;
-    public SquaredArray(int size)
+    public int[] array;
+
+    public SquaredArray()
     {
-        arr = new int[size];
+        array = new int[5];
     }
+
     public int this[int index]
     {
         get
         {
-            if (index >= 0 && index < arr.Length)
-            {
-                return arr[index];
-            }
-            else
-            {
-                throw new IndexOutOfRangeException("Индекс вне границ массива.");
-            }
+            return array[index];
         }
+
         set
         {
-            if (index >= 0 && index < arr.Length)
+            array[index] = (int)Math.Pow(value, 2);
+        }
+    }
+}
+class PaymentCalculator
+{
+    private double heatingRatePerSquareMeter;
+    private double waterRatePerPerson;
+    private double gasRatePerPerson;
+    private double repairRatePerSquareMeter;
+    private bool isWinterSeason;
+
+    public PaymentCalculator(double heatingRate, double waterRate, double gasRate, double repairRate, bool winterSeason)
+    {
+        heatingRatePerSquareMeter = heatingRate;
+        waterRatePerPerson = waterRate;
+        gasRatePerPerson = gasRate;
+        repairRatePerSquareMeter = repairRate;
+        isWinterSeason = winterSeason;
+    }
+
+    public double this[string paymentType]
+    {
+        get
+        {
+            switch (paymentType.ToLower())
             {
-                arr[index] = value * value;
-            }
-            else
-            {
-                throw new IndexOutOfRangeException("Индекс вне границ массива.");
+                case "heating":
+                    double heatingRate = isWinterSeason ? heatingRatePerSquareMeter * 1.5 : heatingRatePerSquareMeter;
+                    return heatingRate;
+                case "water":
+                    return waterRatePerPerson;
+                case "gas":
+                    return gasRatePerPerson;
+                case "repair":
+                    return repairRatePerSquareMeter;
+                default:
+                    throw new ArgumentException("Недопустимый вид платежа");
             }
         }
     }
 }
+
+
 
